@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>书架 · Bookshelf</title>
+<link rel="icon" href="/favicon.svg" />
+<link rel="preload" href="/fonts/MaShanZheng.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+<main class="app" id="app">
+  <div class="stage" id="stage"></div>
+
+  <nav class="chips" id="chips" aria-label="分类"></nav>
+
+  <!-- 谁的书房、多少本、正在看谁的 -->
+  <div class="room-tag" id="roomTag">
+    <button class="rt-name" id="roomName" title="点击改书房名">见室小册的书房</button>
+    <span class="rt-meta" id="roomMeta">正在上架…</span>
+  </div>
+
+  <div class="tooltip" id="tooltip" aria-hidden="true">
+    <div class="tt-title" id="ttTitle"></div>
+    <div class="tt-author" id="ttAuthor"></div>
+    <div class="tt-meta" id="ttMeta"></div>
+  </div>
+
+  <!-- 点开一本书：封面浮起来、翻开，右边是我在这本书上留下的笔记 -->
+  <div class="reader" id="reader" aria-hidden="true">
+    <div class="rd-stage">
+      <div class="bk" id="bk">
+        <div class="bk-inner">
+          <div class="pg pg-r" id="pgR"></div>
+          <div class="bk-cover" id="bkCover">
+            <div class="bk-front"><img id="bkImg" alt="" /></div>
+            <div class="bk-back" id="pgL"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="rd-bar" id="rdBar">
+      <a class="pill" id="rdRead" target="_blank" rel="noopener">在微信读书打开</a>
+      <button class="pill icon" id="rdClose" aria-label="合上" title="合上（Esc）">✕</button>
+    </div>
+  </div>
+
+  <div class="view-toggle" id="viewToggle" role="radiogroup" aria-label="视图">
+    <button role="radio" data-view="spines" class="on">Spines</button>
+    <button role="radio" data-view="covers">Covers</button>
+    <button role="radio" data-view="timeline">Timeline</button>
+  </div>
+
+  <!-- 年表视图：把书架按读到年份排成一条横向书架长河（纯 DOM，独立于 3D 房间） -->
+  <div class="tl-stage" id="tlStage" aria-hidden="true"></div>
+
+  <div class="sort-toggle" id="sortToggle" role="radiogroup" aria-label="排序">
+    <button role="radio" data-sort="" class="on">默认</button>
+    <button role="radio" data-sort="rating">按评分</button>
+  </div>
+
+  <!-- 推近之后才出现：一步退回整架 -->
+  <button class="zoom-out" id="zoomOut" title="回到整架（H / 双击空白处）">
+    <span aria-hidden="true">⤢</span><span class="zo-txt">整架</span>
+  </button>
+
+  <button class="lamp" id="lamp" aria-label="关灯" title="关灯（L）">
+    <span class="lamp-ico" id="lampIco" aria-hidden="true">☀</span>
+    <span class="lamp-txt" id="lampTxt">关灯</span>
+  </button>
+
+  <div class="dock-left" id="dockLeft">
+    <button class="search-pill" id="searchOpen" aria-label="搜索（按 / 键）">
+      <span class="sp-ico" aria-hidden="true">⌕</span><span class="sp-txt">搜索</span><kbd>/</kbd>
+    </button>
+    <button class="decor-pill" id="decorOpen" aria-label="摆件" aria-expanded="false">
+      <span class="dp-ico" aria-hidden="true">✦</span><span class="dp-txt">摆件</span>
+    </button>
+  </div>
+
+  <!-- 摆件抽屉：预设 24 种，点一下摆上架 -->
+  <div class="decor-sheet" id="decorTray" hidden>
+    <div class="ds-head">
+      <div>
+        <b>添加摆件</b>
+        <span>点一下放到最靠镜头、还空着的那格</span>
+      </div>
+      <button class="ds-x" id="decorClose" aria-label="关闭">✕</button>
+    </div>
+    <div class="ds-grid" id="decorGrid"></div>
+  </div>
+
+  <div class="decor-bar" id="decorBar" hidden>
+    <div class="db-head"><b id="dbName">摆件</b><span>正在摆这一件</span></div>
+    <label class="db-row">
+      <i>尺寸</i>
+      <input type="range" id="dbSize" min="70" max="170" step="5" value="100" />
+      <b id="dbSizeVal">100</b>
+    </label>
+    <div class="db-row db-btns">
+      <i>换层</i>
+      <button data-act="up" title="上一层">↑</button>
+      <button data-act="down" title="下一层">↓</button>
+      <button data-act="left" title="往左挪一点">←</button>
+      <button data-act="right" title="往右挪一点">→</button>
+    </div>
+    <div class="db-foot">
+      <button class="db-del" data-act="remove">移除这件</button>
+      <button class="db-done" data-act="done">摆好了</button>
+    </div>
+  </div>
+
+  <!-- 桌上那张纸：点纸写字，点钢笔写信 -->
+  <div class="paper-dlg" id="paperDlg" hidden>
+    <div class="pd-sheet" role="dialog" aria-modal="true" aria-labelledby="pdTitle">
+      <button class="pd-x" id="pdClose" aria-label="收起">✕</button>
+      <div class="pd-kicker" id="pdKicker">DESK NOTES</div>
+      <h2 class="pd-title" id="pdTitle">在纸上写点什么</h2>
+      <textarea id="pdText" spellcheck="false"></textarea>
+      <div class="pd-foot">
+        <span class="pd-count" id="pdCount"></span>
+        <button class="pd-ghost" id="pdClear">擦掉</button>
+        <button class="pd-go" id="pdSave">写到纸上</button>
+      </div>
+      <div class="pd-tip" id="pdTip">字会用钢笔一笔一笔写到桌面那张纸上</div>
+    </div>
+  </div>
+
+  <div class="searchbar" id="searchbar" hidden>
+    <span class="sb-ico" aria-hidden="true">⌕</span>
+    <input id="q" type="search" placeholder="书名、作者…" autocomplete="off" spellcheck="false" />
+    <span class="sb-count" id="qcount"></span>
+    <button class="sb-close" id="searchClose" aria-label="关闭">Esc</button>
+  </div>
+
+  <footer class="credit">封面与笔记来自微信读书 · 书架实时同步</footer>
+
+  <!-- 第一次来的人看一眼就知道怎么逛；之后不再出现 -->
+  <div class="hint" id="hint" hidden>
+    <span class="hint-txt">拖动逛书架 · 滚轮横着走 · ⌘/Ctrl+滚轮 或 双击放大 · 摆件按住就能挪 · 桌上的纸和钢笔都能点</span>
+    <button class="hint-ok" id="hintOk">知道了</button>
+  </div>
+
+  <div class="loading" id="loading"><span>Bookshelf</span><i id="loadbar"></i></div>
+</main>
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>

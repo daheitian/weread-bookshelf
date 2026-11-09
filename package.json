@@ -1,0 +1,27 @@
+{
+  "name": "weread-bookshelf",
+  "version": "1.0.0",
+  "private": false,
+  "description": "把微信读书的书架搬进一间可漫游的 3D 书房 · 书脊 / 封面 / 年表三种视图",
+  "type": "module",
+  "license": "MIT",
+  "author": "daheitian",
+  "keywords": [
+    "weread",
+    "bookshelf",
+    "three.js",
+    "webgl",
+    "reading",
+    "3d"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node tests/timeline-test.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}

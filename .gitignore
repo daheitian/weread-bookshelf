@@ -1,0 +1,24 @@
+# 私有配置与数据：绝不进仓库
+.env
+.env.*
+!.env.example
+
+# 微信读书拉取下来的个人书架、划线、笔记、封面缓存
+data/
+data/**/*
+public/covers/
+
+# 依赖与构建
+node_modules/
+.vercel/
+dist/
+build/
+
+# 本机调试产物
+_old/
+_shots/
+_icons.html
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
