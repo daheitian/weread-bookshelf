@@ -80,12 +80,16 @@ const jump = await p.evaluate(() => {
   const ticks = [...document.querySelectorAll('.tl-tick')];
   const t = ticks[Math.floor(ticks.length / 2)];
   const y = t.dataset.year;
+  const before = document.querySelector('.tl-scroll').scrollLeft;
   t.click();
-  return { y, left: document.querySelector('.tl-scroll').scrollLeft };
+  return { y, before, left: document.querySelector('.tl-scroll').scrollLeft };
 });
 await wait(700);
 const afterJump = await p.evaluate(() => ({ now: document.querySelector('.tl-now')?.textContent?.trim(), left: document.querySelector('.tl-scroll').scrollLeft }));
-ok('点轴跳年', afterJump.now.includes(jump.y) || afterJump.left !== jump.left, `target=${jump.y} now="${afterJump.now}"`);
+// 「未记年」组的 data-year 是 none，但显示文本是中文；按标签判定而不是原始 key
+const jumpLabel = jump.y === 'none' ? '未记年' : jump.y;
+ok('点轴跳年', afterJump.now.includes(jumpLabel) || afterJump.left !== jump.before,
+  `target=${jumpLabel} now="${afterJump.now}" left ${jump.before}→${afterJump.left}`);
 
 /* ── 4. 点书 → 翻开读者 → Esc 合上 ── */
 await p.evaluate(() => document.querySelector('.tl-book')?.click());
